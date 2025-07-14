@@ -1,3 +1,4 @@
+// env cofig
 import { configDotenv } from 'dotenv'
 configDotenv()
 
