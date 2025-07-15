@@ -8,11 +8,14 @@ import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
 import { MemoryVectorStore } from "langchain/vectorstores/memory";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { RetrievalQAChain } from "langchain/chains";
+import { chunkArray } from "@langchain/core/utils/chunk_array";
 
 // npm i pdf-parser
 // Load PDF
 const loader = new PDFLoader("./Rule_based_FAQs_chatbot.pdf");
 const docs = await loader.load();
+// console.log("Loader\n");
+// console.log("Docs\n", docs);
 
 // Split PDF Document into Chunks
 const splitter = new RecursiveCharacterTextSplitter({
@@ -20,16 +23,26 @@ const splitter = new RecursiveCharacterTextSplitter({
     chunkOverlap: 200,
 });
 const ChunkedDocuments = await splitter.splitDocuments(docs);
+// console.log('Splitter\n', splitter);
+// console.log("Chunked Documents\n", ChunkedDocuments);
+
+
 
 // Create Embeddings
 const embeddings = new GoogleGenerativeAIEmbeddings({
     apiKey: process.env.APIKEY,
     model: "embedding-001",
 });
+// console.log("Create Embeddings\n", embeddings);
+
 
 // Store Chunked Documents and Embeddings into Vector Store
 const vectorStore = await MemoryVectorStore.fromDocuments(ChunkedDocuments, embeddings);
 const vectorStoreRetriever = vectorStore.asRetriever();
+// console.log("Vector Store\n", vectorStore);
+// console.log("Vector Store Retriever\n", vectorStoreRetriever.vectorStore);
+// const memoryVectors = vectorStoreRetriever.vectorStore.memoryVectors;
+// console.log(memoryVectors); // embeddings
 
 // Create Chat Model
 const chatModel = new ChatGoogleGenerativeAI({
@@ -37,9 +50,13 @@ const chatModel = new ChatGoogleGenerativeAI({
     model: "gemini-2.0-flash",
     temperature: 0.5,
 });
+// console.log("Create Chat Model\n", chatModel);
+
 
 // Create a Questions-Answer Chain
 const qaChain = RetrievalQAChain.fromLLM(chatModel, vectorStoreRetriever);
+// console.log("Create a Questions-Answer Chain\n", qaChain);
+
 
 // Example Usage
 // Summarize the PDF.
@@ -47,4 +64,4 @@ const qaChain = RetrievalQAChain.fromLLM(chatModel, vectorStoreRetriever);
 // Can you tell what is the table of content?
 const question = "Who are the students that worked in this project? and what is the name of Instructor?";
 const answer = await qaChain.invoke({ query: question });
-console.log(answer.text);
+// console.log("Final Response:\n", answer.text);
