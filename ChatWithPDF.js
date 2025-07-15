@@ -42,9 +42,9 @@ const chatModel = new ChatGoogleGenerativeAI({
 const qaChain = RetrievalQAChain.fromLLM(chatModel, vectorStoreRetriever);
 
 // Example Usage
-// Who are the students that worked in this project? and what is the name of Instructor?
 // Summarize the PDF.
+// Whats the input output flow
 // Can you tell what is the table of content?
-const question = "Whats the input output flow";
+const question = "Who are the students that worked in this project? and what is the name of Instructor?";
 const answer = await qaChain.invoke({ query: question });
-// console.log(answer.text);
+console.log(answer.text);
