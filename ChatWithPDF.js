@@ -47,4 +47,4 @@ const qaChain = RetrievalQAChain.fromLLM(chatModel, vectorStoreRetriever);
 // Can you tell what is the table of content?
 const question = "Whats the input output flow";
 const answer = await qaChain.invoke({ query: question });
-console.log(answer.text);
+// console.log(answer.text);
