@@ -5,10 +5,15 @@ configDotenv();
 import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
-import { MemoryVectorStore } from "langchain/vectorstores/memory";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { RetrievalQAChain } from "langchain/chains";
-import { chunkArray } from "@langchain/core/utils/chunk_array";
+import { Pinecone } from '@pinecone-database/pinecone';
+import { PineconeStore } from "@langchain/community/vectorstores/pinecone";
+
+const pinecone = new Pinecone({
+    apiKey: process.env.PINECONE_APIKEY,
+});
+const index = pinecone.Index(process.env.PINECONE_INDEX_NAME);
 
 // npm i pdf-parser
 // Load PDF
@@ -37,7 +42,10 @@ const embeddings = new GoogleGenerativeAIEmbeddings({
 
 
 // Store Chunked Documents and Embeddings into Vector Store
-const vectorStore = await MemoryVectorStore.fromDocuments(ChunkedDocuments, embeddings);
+const vectorStore = await PineconeStore.fromDocuments(ChunkedDocuments, embeddings, {
+    pineconeIndex: index,
+    namespace: "pdf-chatbot",
+});
 const vectorStoreRetriever = vectorStore.asRetriever();
 // console.log("Vector Store\n", vectorStore);
 // console.log("Vector Store Retriever\n", vectorStoreRetriever.vectorStore);
@@ -62,6 +70,7 @@ const qaChain = RetrievalQAChain.fromLLM(chatModel, vectorStoreRetriever);
 // Summarize the PDF.
 // Whats the input output flow
 // Can you tell what is the table of content?
-const question = "Who are the students that worked in this project? and what is the name of Instructor?";
+// What sections are included in the PDF?
+const question = "Whats the input output flow";
 const answer = await qaChain.invoke({ query: question });
-// console.log("Final Response:\n", answer.text);
+console.log("Final Response:\n", answer.text);
