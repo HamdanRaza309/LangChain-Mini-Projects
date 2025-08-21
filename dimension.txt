@@ -1,0 +1,183 @@
+import { configDotenv } from "dotenv";
+configDotenv();
+
+import { ConversationChain } from 'langchain/chains';
+import { ChatPromptTemplate, MessagesPlaceholder } from '@langchain/core/prompts';
+import { BufferMemory } from 'langchain/memory';
+import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
+import readline from 'readline';
+
+// Initialize the AI model
+const model = new ChatGoogleGenerativeAI({
+    apiKey: process.env.APIKEY,
+    model: "gemini-1.5-flash",
+    temperature: 0.5,
+});
+
+// Conversation state
+const state = {
+    step: 1, // 1=title, 2=categories, 3=examples, 4=confirmation
+    title: null,
+    categories: [],
+    examples: {}
+};
+
+// System prompt
+const systemPrompt = `You are Inspectrum, a synthetic data assistant. Guide the user through these steps:
+1. Get dimension title (ask first)
+2. Suggest 3-5 categories
+3. Provide 5 examples per category
+4. Confirm when ready
+
+Speak naturally but structure responses to move through these steps.`;
+
+const chatPrompt = ChatPromptTemplate.fromMessages([
+    ["system", systemPrompt],
+    new MessagesPlaceholder("history"),
+    ["human", "{input}"],
+]);
+
+const chain = new ConversationChain({
+    memory: new BufferMemory({ returnMessages: true, memoryKey: "history" }),
+    prompt: chatPrompt,
+    llm: model,
+});
+
+const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+});
+
+// Update state based on conversation
+function updateState(input, response) {
+    // First input becomes the title
+    if (state.step === 1 && input && !state.title) {
+        state.title = input;
+        state.step = 2;
+        return;
+    }
+
+    // Detect categories in AI response
+    if (state.step === 2 && response.includes("categories")) {
+        const matches = response.match(/(?:category|categories):?\s*([^\n]+)/i);
+        if (matches) {
+            state.categories = matches[1].split(',').map(s => s.trim().replace(/^\W+|\W+$/g, ''));
+            state.step = 3;
+        }
+    }
+
+    // Detect examples
+    if (state.step === 3 && response.includes("example")) {
+        const exampleBlocks = response.match(/\w+: \[[^\]]+\]/g);
+        if (exampleBlocks) {
+            exampleBlocks.forEach(block => {
+                const [category, examples] = block.split(':');
+                state.examples[category.trim()] = examples.trim()
+                    .replace(/[\[\]]/g, '')
+                    .split(',')
+                    .map(s => s.trim());
+            });
+            state.step = 4;
+        }
+    }
+
+    // Detect confirmation
+    if (response.includes("ready") || response.includes("confirm")) {
+        state.step = 5;
+    }
+}
+
+function formatOutput() {
+    return {
+        assistant_response: state.step === 5
+            ? "Great! Here's your finalized dimension:"
+            : "Let's continue defining your dimension.",
+        ready_to_begin: state.step === 5,
+        title_of_dimension: state.title || "NULL",
+        scale_1_of_the_dimension: state.categories[0] || "NULL",
+        scale_2_of_the_dimension: state.categories[1] || "NULL",
+        scale_3_of_the_dimension: state.categories[2] || "NULL",
+        scale_1_examples: state.examples[state.categories[0]] || [],
+        scale_2_examples: state.examples[state.categories[1]] || [],
+        scale_3_examples: state.examples[state.categories[2]] || []
+    };
+}
+
+async function startChat() {
+    console.log("AI: What is the name or theme of the categorical dimension you'd like to create?");
+    console.log("(e.g., emotion, vehicle type, user intent, app feature)");
+    console.log("Type 'exit' to end the conversation");
+
+    const chatLoop = async () => {
+        rl.question("You: ", async (input) => {
+            if (input.toLowerCase() === 'exit') {
+                console.log("AI: Goodbye!");
+                rl.close();
+                return;
+            }
+
+            try {
+                const response = await chain.invoke({ input });
+                updateState(input, response.response);
+                const output = formatOutput();
+
+                console.log(`AI: ${response.response}`);
+
+                if (output.ready_to_begin) {
+                    console.log("\nFINAL DIMENSION:");
+                    console.log(JSON.stringify(output, null, 2));
+                    rl.close();
+                    return;
+                }
+
+                chatLoop();
+            } catch (error) {
+                console.log("AI: Let's try that again...");
+                chatLoop();
+            }
+        });
+    };
+
+    chatLoop();
+}
+
+startChat();
+
+chat:
+PS D:\Projects\LangChain-Mini-Projects> node .\dimensionCreation.js
+[dotenv@17.2.0] injecting env (3) from .env (tip: ⚙️  enable debug logging with { debug: true })
+AI: What is the name or theme of the categorical dimension you'd like to create?
+(e.g., emotion, vehicle type, user intent, app feature)
+Type 'exit' to end the conversation
+You: hi
+AI: Hi there!  Let's get started creating some synthetic data.  First, tell me: what is the title of the dimension we'll be working 
+with?
+
+You: i want to analyze customer reviews like in what state of mind they posted their review. suggest me some name for my dimension
+AI: Okay, "Customer Review Sentiment" or "Customer State of Mind" would be good names for this dimension.  Let's go with **Customer 
+Review Sentiment**.  Now, let's brainstorm some categories to represent different states of mind.  I suggest these:
+* **Positive:**  Expressing happiness, satisfaction, or excitement.
+* **Negative:** Expressing anger, frustration, disappointment, or sadness.
+* **Neutral:**  Expressing neither positive nor negative feelings; factual or objective.
+* **Excited:** Showing strong positive emotion, anticipation, or enthusiasm.
+* **Frustrated:** Showing feelings of annoyance, displeasure, or impatience.
+How does that sound?  Once you're happy with the categories, we can move on to generating examples.
+You:
+
+
+the ai should not move to the categories selection phase unless the title is decided, whenever user asks for the title suggestions it should suggest them titles according to their goal and if the user like one of the title then the ai should say shal we proceed we 'selected title' or i should suggest more titles? if the user says suggest more titles than suggest it otherwise proceed with the selected title.
+After title selection the ai should now ask for 'should i generate examples for the given title covering all the aspects(scales) like negative(1/10 scale or scale 3), neutral(5/10 scale or scale 2), and positive(10/10 scales or scale 1)
+if the user likes the example than ok response with {
+"assistant response": "string",
+"ready to begin": boolean, 
+"title of dimension: "string",
+"scale 1 of the dimension": "string",
+"scale 2 of the dimension": "string",
+"scale 3 of the dimension": "string",
+"scale 1 examples": "string",
+"scale 2 examples": "string",
+"scale 3 examples": "string",
+}
+otherwise generate other examples
+
+Flow: get title of the dimension through conversation->when agree on title than move to example generation phase->generate examples -> if user agree than ok otherwise generate other examples->complete 
