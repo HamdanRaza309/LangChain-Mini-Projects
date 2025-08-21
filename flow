@@ -1,0 +1,109 @@
+tha chatbot should chat with user and get the title and categories during chatting;
+Example;
+User: hi 
+AI:  {
+  "assistant_response": "hey, how are you how can i help you today, do you want to create dimension to analyze somthing", 
+  "ready_to_begin": false,
+  "title_of_dimension": "NULL", 
+  "scale_1_of_the_dimension": "NULL",
+  "scale_2_of_the_dimension": "NULL",
+  "scale_3_of_the_dimension": "NULL",
+  "scale_1_examples": [],
+  "scale_2_examples": [],
+  "scale_3_examples": []
+}
+
+User: Yeah, you are write i want to create dimension and want to create a dimension to help me analyze Survey Response
+AI:{
+  "assistant_response": "ok, so you want to analyze Survey Response right?",
+  "ready_to_begin": false,
+  "title_of_dimension": "NULL", 
+  "scale_1_of_the_dimension": "NULL",
+  "scale_2_of_the_dimension": "NULL",
+  "scale_3_of_the_dimension": "NULL",
+  "scale_1_examples": [],
+  "scale_2_examples": [],
+  "scale_3_examples": []
+}
+
+user: exactly
+{
+  "assistant_response": "ok, let me give you some scales(categories) to analyze it better, my suggested scales are scale1,scale2, scale3, do you want to proceed with these categories or you want other or want to give it by youself?", 
+  "ready_to_begin": false,
+  "title_of_dimension": "Survey Response Analysis",
+  "scale_1_of_the_dimension": "NULL",
+  "scale_2_of_the_dimension": "NULL",
+  "scale_3_of_the_dimension": "NULL",
+  "scale_1_examples": [],
+  "scale_2_examples": [],
+  "scale_3_examples": []
+}
+
+User: i want to give categories(scales) by myself. 1 should be positive reviews, 2 should be negative reviews, 3 should be neutral reviews
+AI:{
+  "assistant_response": "ok, done i will generate 5 examples per scale, are you ready?", 
+  "ready_to_begin": false,
+  "title_of_dimension": "Survey Response Analysis",
+  "scale_1_of_the_dimension": "positive reviews", 
+  "scale_2_of_the_dimension": "negative reviews", 
+  "scale_3_of_the_dimension": "neutral reviews", 
+  "scale_1_examples": [],
+  "scale_2_examples": [],
+  "scale_3_examples": []
+}
+user: ok genrate it
+AI:{
+  "assistant_response": "are these examples ok? or shall i generate other?", 
+  "ready_to_begin": false,
+  "title_of_dimension": "Survey Response Analysis",
+  "scale_1_of_the_dimension": "positive reviews", 
+  "scale_2_of_the_dimension": "negative reviews", 
+  "scale_3_of_the_dimension": "neutral reviews", 
+  "scale_1_examples": [
+"example1","example2","example3","example4","example5"
+],
+  "scale_2_examples": [
+"example1","example2","example3","example4","example5"
+], 
+  "scale_3_examples": [
+"example1","example2","example3","example4","example5"
+] 
+}
+
+user:no generate other examples
+AI:{
+  "assistant_response": "are the new examples ok? or shall i generate other?", 
+  "ready_to_begin": false,
+  "title_of_dimension": "Survey Response Analysis",
+  "scale_1_of_the_dimension": "positive reviews", 
+  "scale_2_of_the_dimension": "negative reviews", 
+  "scale_3_of_the_dimension": "neutral reviews", 
+  "scale_1_examples": [
+"other_example1","other_example2","other_example3","other_example4","other_example5"
+],  
+  "scale_2_examples": [
+"other_example1","other_example2","other_example3","other_example4","other_example5"
+], 
+  "scale_3_examples": [
+"other_example1","other_example2","other_example3","other_example4","other_example5"
+] 
+} 
+
+user: these are ok
+AI:{
+  "assistant_response": "ok", 
+  "ready_to_begin": true, 
+  "title_of_dimension": "Survey Response Analysis",
+  "scale_1_of_the_dimension": "positive reviews", 
+  "scale_2_of_the_dimension": "negative reviews", 
+  "scale_3_of_the_dimension": "neutral reviews", 
+  "scale_1_examples": [
+"other_example1","other_example2","other_example3","other_example4","other_example5"
+],  
+  "scale_2_examples": [
+"other_example1","other_example2","other_example3","other_example4","other_example5"
+], 
+  "scale_3_examples": [
+"other_example1","other_example2","other_example3","other_example4","other_example5"
+] 
+} 
