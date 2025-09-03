@@ -1,1 +1,1 @@
-# LangChain---Mini-Projects
+# LangChain-Mini-Projects
